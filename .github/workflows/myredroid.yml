@@ -51,8 +51,8 @@ jobs:
           pwd
           sudo apt-get update && sudo apt-get install adb
           sudo apt install linux-modules-extra-`uname -r`
-          modprobe binder_linux devices="binder,hwbinder,vndbinder"
-          modprobe ashmem_linux
+          sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
+          sudo modprobe ashmem_linux
           docker run --rm --name my_redroid --privileged --pull always -v ~/work/myredroid/myredroid/data:/data -p 5555:5555 redroid/redroid:16.0.0-latest &
 
           echo "Memeriksa status container..."
