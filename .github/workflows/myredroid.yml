@@ -38,6 +38,15 @@ jobs:
         run: |
           sudo cloudflared service install eyJhIjoiOWFjMWUxOTExMmU5ZWZmZDIzNmFlNDk1NDIyYmY2ZjgiLCJ0IjoiZmJiNzE4ODUtNjY0ZS00NTg3LWFjYTgtMWYxZjY4NjI4MDYxIiwicyI6Ik9HRXdaVEU1WldJdE5ESm1ZeTAwTXpaaUxXRXpZakF0TUdVM1ltWTNNR0ZpTURsbSJ9
           cloudflared tunnel run --token eyJhIjoiOWFjMWUxOTExMmU5ZWZmZDIzNmFlNDk1NDIyYmY2ZjgiLCJ0IjoiZmJiNzE4ODUtNjY0ZS00NTg3LWFjYTgtMWYxZjY4NjI4MDYxIiwicyI6Ik9HRXdaVEU1WldJdE5ESm1ZeTAwTXpaaUxXRXpZakF0TUdVM1ltWTNNR0ZpTURsbSJ9 &
+
+
+      - name: setup ttyd
+        run: |
+          sudo apt install fish
+          wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
+          chmod +x ttyd.x86_64
+          sudo mv ttyd.x86_64 /usr/bin/ttyd
+          ttyd -p 5678 -W -t cursorStyle=bar /usr/bin/fish &
           
       - name: setup redroid
         run: |
