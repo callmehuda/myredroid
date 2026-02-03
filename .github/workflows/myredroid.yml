@@ -41,7 +41,7 @@ jobs:
 
 
  
-      - name: setup redroid
+      - name: setup ttyd
         run: |
           sudo apt install fish
           wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
