@@ -54,12 +54,12 @@ jobs:
 
       - name: run ws-scrcpy
         run: |
-          git clone https://github.com/NetrisTV/ws-scrcpy.git
-          cd ws-scrcpy
-          rm -rf .git
-          rm .gitignore
-          npm install
-          npm start
+          #git clone https://github.com/NetrisTV/ws-scrcpy.git
+          #cd ws-scrcpy
+          #rm -rf .git
+          #rm .gitignore
+          #npm install
+          #npm start
 
       - name: Save to GitHub
         run: |
