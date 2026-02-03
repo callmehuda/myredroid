@@ -7,6 +7,13 @@ services:
       - 5555:5555
     volumes:
       - ./data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "getprop sys.boot_completed | grep -q 1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+      start_period: 20s
+
     command:
       - androidboot.use_memfd=true
       - androidboot.redroid_gpu_mode=host
