@@ -44,6 +44,9 @@ services:
     restart: unless-stopped
     image: shmayro/scrcpy-web:latest
     privileged: true
+    depends_on:
+      redroid:
+        condition: service_healthy
     ports:
       - 8000:8000
     command: >
