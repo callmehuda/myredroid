@@ -14,6 +14,9 @@ services:
       - ./data:/data
     command:
       - androidboot.use_memfd=true
+      - androidboot.redroid_net_ndns=2
+      - androidboot.redroid_net_dns1=1.1.1.1
+      - androidboot.redroid_net_dns2=1.0.0.1
       - androidboot.redroid_gpu_mode=auto
       - ro.adb.secure=0
       - ro.product.cpu.abilist=x86_64,x86,arm64-v8a,armeabi-v7a,armeabi
