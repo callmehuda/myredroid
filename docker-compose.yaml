@@ -12,12 +12,6 @@ services:
       - 5555:5555
     volumes:
       - ./data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "cat < /dev/null > /dev/tcp/127.0.0.1/5555"]
-      interval: 10s      # Periksa setiap 10 detik
-      timeout: 5s       # Batas waktu satu kali percobaan
-      retries: 35        # Coba sampai 5 kali sebelum dianggap gagal
-      start_period: 20s # "Masa tenggang" awal (Docker tidak akan menghitung kegagalan dalam 20 detik pertama)    
     command:
       - androidboot.use_memfd=true
       - androidboot.redroid_gpu_mode=host
@@ -45,12 +39,17 @@ services:
     image: shmayro/scrcpy-web:latest
     privileged: true
     depends_on:
-      redroid:
-        condition: service_healthy
+      - redroid
     ports:
       - 8000:8000
     command: >
       sh -c "
+        echo 'Mencari keberadaan redroid...';
+        until nc -z redroid 5555; do
+          echo 'Redroid port 5555 belum siap, menunggu 3 detik...';
+          sleep 3;
+        done;
+        echo 'Koneksi Berhasil! Menyambungkan ADB...';
         adb connect redroid:5555 &&
         npm start
       "
