@@ -47,9 +47,6 @@ services:
     privileged: true
     ports:
       - 8000:8000
-    depends_on:
-      redroid:
-        condition: service_healthy
     command: >
       sh -c "
         adb connect redroid:5555 &&
