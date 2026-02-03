@@ -3,6 +3,11 @@ services:
     container_name: redroid
     image: redroid:11.0.0-nb
     privileged: true
+    devices:
+      - "/dev/kvm:/dev/kvm"
+      - "/dev/binder:/dev/binder"
+      - "/dev/hwbinder:/dev/hwbinder"
+      - "/dev/vndbinder:/dev/vndbinder"
     ports:
       - 5555:5555
     volumes:
