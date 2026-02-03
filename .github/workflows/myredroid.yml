@@ -52,31 +52,8 @@ jobs:
           sudo apt-get update && sudo apt-get install adb
           sudo apt install linux-modules-extra-`uname -r`
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
-          sudo modprobe ashmem_linux
-          docker run --rm --name my_redroid --privileged --pull always -v ~/work/myredroid/myredroid/data:/data -p 5555:5555 redroid/redroid:16.0.0-latest &
-
-          echo "Memeriksa status container..."
-         
-          RETRIES=10
-          until [ "$(docker inspect -f '{{.State.Running}}' my_redroid)" == "true" ] || [ $RETRIES -eq 0 ]; do
-            echo "Menunggu container aktif... ($RETRIES percobaan tersisa)"
-            sleep 3
-            RETRIES=$((RETRIES-1))
-          done
-
-          echo "Mencoba menghubungkan ADB ke localhost:5555..."
-          MAX_ATTEMPTS=15
-          COUNT=0
-          while [ $COUNT -lt $MAX_ATTEMPTS ]; do
-            if adb connect localhost:5555 | grep -q "connected"; then
-              echo "Berhasil terhubung ke Redroid!"
-              adb devices
-              break
-            fi
-            echo "Mencoba ulang koneksi... ($((COUNT+1))/$MAX_ATTEMPTS)"
-            sleep 5
-            COUNT=$((COUNT+1))
-          done
+          docker run -d --rm --name redroid --privileged --pull always -v ~/work/myredroid/myredroid/data:/data -p 5555:5555 redroid/redroid:11.0.0-latest androidboot.use_memfd=true androidboot.redroid_gpu_mode=host ro.adb.secure=0 ro.product.cpu.abilist=x86_64,x86,arm64-v8a,armeabi-v7a,armeabi ro.product.cpu.abilist32=x86,armeabi-v7a,armeabi ro.product.cpu.abilist64=x86_64,arm64-v8a ro.vendor.product.cpu.abilist=x86_64,x86,arm64-v8a,armeabi-v7a,armeabi ro.vendor.product.cpu.abilist32=x86,armeabi-v7a,armeabi ro.vendor.product.cpu.abilist64=x86_64,arm64-v8a ro.odm.product.cpu.abilist=x86_64,x86,arm64-v8a,armeabi-v7a,armeabi ro.odm.product.cpu.abilist32=x86,armeabi-v7a,armeabi ro.odm.product.cpu.abilist64=x86_64,arm64-v8a ro.dalvik.vm.native.bridge=libhoudini.so ro.enable.native.bridge.exec=1 ro.enable.native.bridge.exec64=1 ro.dalvik.vm.isa.arm=x86 ro.dalvik.vm.isa.arm64=x86_64 ro.zygote=zygote64_32
+          adb connect localhost:5555
 
       - name: Save to GitHub
         run: |
