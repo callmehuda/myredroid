@@ -55,6 +55,7 @@ jobs:
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
           git clone https://github.com/ayasa520/redroid-script.git redrosc
           cd redrosc && rm -rf .git
+          pip install -r requirements.txt
           python redroid.py -a 12.0.0 -gmnw
           #docker build . -t redroid:11.0.0-nb
           cd ..
