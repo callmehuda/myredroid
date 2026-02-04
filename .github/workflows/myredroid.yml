@@ -53,13 +53,8 @@ jobs:
           sudo apt-get update && sudo apt-get install adb
           sudo apt install linux-modules-extra-`uname -r`
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
-          wget -q https://github.com/niizam/Genymotion_A11_libhoudini/releases/download/1.0/system.zip
-          unzip system.zip -d system_temp
-          cd system_temp
-          tar -czvf ../system.tar.gz .
-          cd ..
-          rm -rf system_temp
-          docker build . -t redroid:11.0.0-nb
+          python redroid.py -a 12.0.0 -gmnw
+          #docker build . -t redroid:11.0.0-nb
           docker compose up
 
       - name: run ws-scrcpy
