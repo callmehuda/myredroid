@@ -53,7 +53,7 @@ jobs:
           sudo apt-get update && sudo apt-get install adb
           sudo apt install linux-modules-extra-`uname -r`
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
-          docker pull aureliolo/redroid:14.0.0_arm64_with_gapps
+          docker pull erstt/redroid:15.0.0_ndk_magisk_litegapps_AVD
           docker compose up
 
       - name: run ws-scrcpy
