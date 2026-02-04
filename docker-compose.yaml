@@ -13,7 +13,13 @@ services:
       - 5555:5555
     volumes:
       - ./data:/data
-
+    command:
+      - androidboot.use_memfd=true
+      - androidboot.redroid_net_ndns=2
+      - androidboot.redroid_net_dns1=1.1.1.1
+      - androidboot.redroid_net_dns2=1.0.0.1
+      - androidboot.redroid_gpu_mode=guest
+      - ro.adb.secure=0      
 
   scrcpy-web:
     container_name: scrcpy-web
