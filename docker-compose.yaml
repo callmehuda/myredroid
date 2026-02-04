@@ -1,7 +1,7 @@
 services:
   redroid:
     container_name: redroid
-    image: redroid:14.0.0_arm64_with_gapps
+    image: aureliolo/redroid:14.0.0_arm64_with_gapps
     privileged: true
     devices:
       - "/dev/kvm:/dev/kvm"
