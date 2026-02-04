@@ -53,12 +53,7 @@ jobs:
           sudo apt-get update && sudo apt-get install adb
           sudo apt install linux-modules-extra-`uname -r`
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
-          git clone https://github.com/ayasa520/redroid-script.git redrosc
-          cd redrosc && rm -rf .git
-          pip install -r requirements.txt
-          python redroid.py -a 13.0.0 -lg -miw
-          #docker build . -t redroid:11.0.0-nb
-          cd ..
+          docker pull aureliolo/redroid:14.0.0_arm64_with_gapps
           docker compose up
 
       - name: run ws-scrcpy
