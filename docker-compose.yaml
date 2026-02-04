@@ -8,6 +8,7 @@ services:
       - "/dev/binder:/dev/binder"
       - "/dev/hwbinder:/dev/hwbinder"
       - "/dev/vndbinder:/dev/vndbinder"
+      - "/dev/dri:/dev/dri"
     ports:
       - 5555:5555
     volumes:
@@ -17,7 +18,7 @@ services:
       - androidboot.redroid_net_ndns=2
       - androidboot.redroid_net_dns1=1.1.1.1
       - androidboot.redroid_net_dns2=1.0.0.1
-      - androidboot.redroid_gpu_mode=auto
+      - androidboot.redroid_gpu_mode=guest
       - ro.adb.secure=0
       - ro.product.cpu.abilist=x86_64,x86,arm64-v8a,armeabi-v7a,armeabi
       - ro.product.cpu.abilist32=x86,armeabi-v7a,armeabi
