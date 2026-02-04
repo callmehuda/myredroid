@@ -54,6 +54,7 @@ jobs:
           sudo apt install linux-modules-extra-`uname -r`
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
           docker pull erstt/redroid:15.0.0_ndk_magisk_litegapps_AVD
+          wget https://f-droid.org/repo/com.aurora.store_71.apk && mv com.aurora.store_71.apk data/media/0/Download/
           docker compose up
 
       - name: run ws-scrcpy

@@ -35,7 +35,6 @@ services:
       - ro.dalvik.vm.isa.arm=x86
       - ro.dalvik.vm.isa.arm64=x86_64
       - ro.zygote=zygote64_32
-      - wget https://f-droid.org/repo/com.aurora.store_71.apk && mv com.aurora.store_71.apk /data/media/0/Download
 
   scrcpy-web:
     container_name: scrcpy-web
