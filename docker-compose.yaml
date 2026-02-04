@@ -1,7 +1,7 @@
 services:
   redroid:
     container_name: redroid
-    image: redroid/redroid:12.0.0_ndk_magisk_widevine
+    image: redroid/redroid:13.0.0_litegapps_houdini_magisk_widevine
     privileged: true
     devices:
       - "/dev/kvm:/dev/kvm"
