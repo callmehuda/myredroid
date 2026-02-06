@@ -8,16 +8,23 @@ on:
 jobs:
   my:
     runs-on: ubuntu-latest
-    # Timeout global 6 jam (limit maksimal GitHub Actions)
+    # Timeout global agar Actions tidak mati duluan sebelum backup selesai
     timeout-minutes: 360 
 
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Dependencies
+      - name: Install Cloudflared
+        run: |       
+          sudo mkdir -p --mode=0755 /usr/share/keyrings
+          curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+          sudo apt-get update && sudo apt-get install cloudflared -y
+
+      - name: Install Other Dependencies
         run: |       
           sudo apt-get update
-          sudo apt-get install cloudflared rclone zstd adb -y
+          sudo apt-get install rclone zstd adb fish -y
           # Install TTYD
           wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
           chmod +x ttyd.x86_64 && sudo mv ttyd.x86_64 /usr/bin/ttyd
@@ -26,10 +33,10 @@ jobs:
         run: |
           mkdir -p ~/.config/rclone
           # Pakai rclone.conf yang ada di repo kamu
-          mv rclone.conf ~/.config/rclone/rclone.conf
+          [ -f rclone.conf ] && cp rclone.conf ~/.config/rclone/rclone.conf
           
           echo "Checking for existing backup on GDrive..."
-          # Ambil backup terakhir jika ada (asumsi nama file: redroid_backup.tar.zst)
+          # Ambil backup terakhir jika ada
           if rclone ls gdrive:Redroid_Backups/redroid_backup.tar.zst; then
             rclone copy gdrive:Redroid_Backups/redroid_backup.tar.zst . -P
             tar --use-compress-program=zstd -xvf redroid_backup.tar.zst
@@ -42,7 +49,8 @@ jobs:
 
       - name: Setup Network & Tunnels
         run: |
-          # Pakai token yang kamu punya langsung
+          # Pakai service install & token milikmu
+          #sudo cloudflared service install eyJhIjoiOWFjMWUxOTExMmU5ZWZmZDIzNmFlNDk1NDIyYmY2ZjgiLCJ0IjoiZmJiNzE4ODUtNjY0ZS00NTg3LWFjYTgtMWYxZjY4NjI4MDYxIiwicyI6Ik9HRXdaVEU1WldJdE5ESm1ZeTAwTXpaaUxXRXpZakF0TUdVM1ltWTNNR0ZpTURsbSJ9
           cloudflared tunnel run --token eyJhIjoiOWFjMWUxOTExMmU5ZWZmZDIzNmFlNDk1NDIyYmY2ZjgiLCJ0IjoiZmJiNzE4ODUtNjY0ZS00NTg3LWFjYTgtMWYxZjY4NjI4MDYxIiwicyI6Ik9HRXdaVEU1WldJdE5ESm1ZeTAwTXpaaUxXRXpZakF0TUdVM1ltWTNNR0ZpTURsbSJ9 &
           ttyd -p 5678 -W -t cursorStyle=bar /usr/bin/fish &
           
@@ -56,28 +64,16 @@ jobs:
         continue-on-error: true
         run: |
           # Jalankan docker-compose dengan timeout 4 jam (14400 detik)
-          # Menggunakan 'timeout' agar setelah 4 jam step ini dianggap selesai dan lanjut ke backup
           timeout 14400s docker compose up || echo "Redroid reached 4 hour limit."
 
       - name: Stop, Compress & Backup
-        if: always() # Wajib agar tetap backup meskipun timeout/error
+        if: always() # Tetap jalan meski timeout
         run: |
           echo "Cleaning up containers..."
           docker compose down || true
           
           echo "Compressing data folder..."
-          # Kompresi kencang pakai Zstd
           tar --use-compress-program="zstd -3 --threads=0" -cvf redroid_backup.tar.zst data/
           
           echo "Uploading to Google Drive..."
-          # Upload dan timpa backup lama agar restore berikutnya pakai data terbaru
           rclone copy redroid_backup.tar.zst gdrive:Redroid_Backups/ -P
-
-      - name: Finalize GitHub Repo
-        if: always()
-        run: |
-          git config user.name github-actions
-          git config user.email actions@github.com
-          git add .
-          git commit -m "Update metadata and rclone config [skip ci]" || echo "No changes"
-          git push origin image
