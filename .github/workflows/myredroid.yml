@@ -73,7 +73,7 @@ jobs:
           docker compose down || true
           
           echo "Compressing data folder..."
-          tar --use-compress-program="zstd -3 --threads=0" -cvf redroid_backup.tar.zst data/
+          sudo tar --use-compress-program="zstd -3 --threads=0" -cvf redroid_backup.tar.zst data/
           
           echo "Uploading to Google Drive..."
-          rclone copy redroid_backup.tar.zst gdrive:Redroid_Backups/ -P
+          sudo rclone copy redroid_backup.tar.zst gdrive:Redroid_Backups/ -P
