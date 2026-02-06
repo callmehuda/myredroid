@@ -1,78 +1,83 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Redroid
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "image" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches: [ "re-image" ]
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   my:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    # Timeout global 6 jam (limit maksimal GitHub Actions)
+    timeout-minutes: 360 
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
       
-      - name: Install Cloudflared
+      - name: Install Dependencies
         run: |       
-          sudo mkdir -p --mode=0755 /usr/share/keyrings
-          curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
-
-          echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
-
-          sudo apt-get update && sudo apt-get install cloudflared
-
-      - name: Setup Cloudflared
-        run: |
-          sudo cloudflared service install eyJhIjoiOWFjMWUxOTExMmU5ZWZmZDIzNmFlNDk1NDIyYmY2ZjgiLCJ0IjoiZmJiNzE4ODUtNjY0ZS00NTg3LWFjYTgtMWYxZjY4NjI4MDYxIiwicyI6Ik9HRXdaVEU1WldJdE5ESm1ZeTAwTXpaaUxXRXpZakF0TUdVM1ltWTNNR0ZpTURsbSJ9
-          cloudflared tunnel run --token eyJhIjoiOWFjMWUxOTExMmU5ZWZmZDIzNmFlNDk1NDIyYmY2ZjgiLCJ0IjoiZmJiNzE4ODUtNjY0ZS00NTg3LWFjYTgtMWYxZjY4NjI4MDYxIiwicyI6Ik9HRXdaVEU1WldJdE5ESm1ZeTAwTXpaaUxXRXpZakF0TUdVM1ltWTNNR0ZpTURsbSJ9 &
-
-      - name: setup ttyd
-        run: |
-          sudo apt install fish
+          sudo apt-get update
+          sudo apt-get install cloudflared rclone zstd adb -y
+          # Install TTYD
           wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
-          chmod +x ttyd.x86_64
-          sudo mv ttyd.x86_64 /usr/bin/ttyd
+          chmod +x ttyd.x86_64 && sudo mv ttyd.x86_64 /usr/bin/ttyd
+
+      - name: Setup Rclone & Restore Data
+        run: |
+          mkdir -p ~/.config/rclone
+          # Pakai rclone.conf yang ada di repo kamu
+          mv rclone.conf ~/.config/rclone/rclone.conf
+          
+          echo "Checking for existing backup on GDrive..."
+          # Ambil backup terakhir jika ada (asumsi nama file: redroid_backup.tar.zst)
+          if rclone ls gdrive:Redroid_Backups/redroid_backup.tar.zst; then
+            rclone copy gdrive:Redroid_Backups/redroid_backup.tar.zst . -P
+            tar --use-compress-program=zstd -xvf redroid_backup.tar.zst
+            echo "Restore complete!"
+          else
+            echo "No backup found, starting fresh."
+            mkdir -p data/media/0/Download
+            wget https://f-droid.org/repo/com.aurora.store_71.apk -O data/media/0/Download/Aurora.apk
+          fi
+
+      - name: Setup Network & Tunnels
+        run: |
+          # Pakai token yang kamu punya langsung
+          cloudflared tunnel run --token eyJhIjoiOWFjMWUxOTExMmU5ZWZmZDIzNmFlNDk1NDIyYmY2ZjgiLCJ0IjoiZmJiNzE4ODUtNjY0ZS00NTg3LWFjYTgtMWYxZjY4NjI4MDYxIiwicyI6Ik9HRXdaVEU1WldJdE5ESm1ZeTAwTXpaaUxXRXpZakF0TUdVM1ltWTNNR0ZpTURsbSJ9 &
           ttyd -p 5678 -W -t cursorStyle=bar /usr/bin/fish &
           
-      - name: setup redroid
+      - name: Setup Kernel & Redroid
         run: |
-          pwd
-          sudo apt-get update && sudo apt-get install adb
           sudo apt install linux-modules-extra-`uname -r`
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
           docker pull erstt/redroid:15.0.0_ndk_magisk_litegapps_AVD
-          mkdir -p data/media/0/Download
-          wget https://f-droid.org/repo/com.aurora.store_71.apk && mv com.aurora.store_71.apk data/media/0/Download/
-          docker compose up
 
-      - name: run ws-scrcpy
+      - name: Run Redroid (4 Hour Limit)
+        continue-on-error: true
         run: |
-          #git clone https://github.com/NetrisTV/ws-scrcpy.git
-          #cd ws-scrcpy
-          #rm -rf .git
-          #rm .gitignore
-          #npm install
-          #npm start
+          # Jalankan docker-compose dengan timeout 4 jam (14400 detik)
+          # Menggunakan 'timeout' agar setelah 4 jam step ini dianggap selesai dan lanjut ke backup
+          timeout 14400s docker compose up || echo "Redroid reached 4 hour limit."
 
-      - name: Save to GitHub
+      - name: Stop, Compress & Backup
+        if: always() # Wajib agar tetap backup meskipun timeout/error
         run: |
-          git pull
+          echo "Cleaning up containers..."
+          docker compose down || true
+          
+          echo "Compressing data folder..."
+          # Kompresi kencang pakai Zstd
+          tar --use-compress-program="zstd -3 --threads=0" -cvf redroid_backup.tar.zst data/
+          
+          echo "Uploading to Google Drive..."
+          # Upload dan timpa backup lama agar restore berikutnya pakai data terbaru
+          rclone copy redroid_backup.tar.zst gdrive:Redroid_Backups/ -P
+
+      - name: Finalize GitHub Repo
+        if: always()
+        run: |
           git config user.name github-actions
           git config user.email actions@github.com
           git add .
-          git commit -m "Update Files"
-          git push
-          
+          git commit -m "Update metadata and rclone config [skip ci]" || echo "No changes"
+          git push origin image
