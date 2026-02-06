@@ -64,7 +64,7 @@ jobs:
         continue-on-error: true
         run: |
           # Jalankan docker-compose dengan timeout 4 jam (14400 detik)
-          timeout 14400s docker compose up || echo "Redroid reached 4 hour limit."
+          timeout 300s docker compose up || echo "Redroid reached 4 hour limit."
 
       - name: Stop, Compress & Backup
         if: always() # Tetap jalan meski timeout
